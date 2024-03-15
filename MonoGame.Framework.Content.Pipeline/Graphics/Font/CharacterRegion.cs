@@ -11,6 +11,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         public char Start;
         public char End;
         public string FontName = string.Empty;
+        public float? Size;
 
         // Enumerates all characters within the region.        
         public IEnumerable<Char> Characters()

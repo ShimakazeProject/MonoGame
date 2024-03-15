@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using SharpFont;
 
 namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
@@ -24,15 +25,15 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
         Library lib = null;
 
-        public void Import(FontDescription options, string fontName)
+        public void Import(FontDescription options, in CharacterRegion region, string fontName)
         {
             lib = new Library();
             // Create a bunch of GDI+ objects.
-            var face = CreateFontFace(options, fontName);
+            var face = CreateFontFace(options, region, fontName);
             try
             {
                 // Which characters do we want to include?
-                var characters = options.Characters;
+                var characters = region.Characters();
 
                 var glyphList = new List<Glyph>();
                 var glyphMaps = new Dictionary<uint, GlyphData>();
@@ -72,7 +73,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
 
         // Attempts to instantiate the requested GDI+ font object.
-        private Face CreateFontFace(FontDescription options, string fontName)
+        private Face CreateFontFace(FontDescription options, in CharacterRegion region, string fontName)
         {
             try
             {
@@ -81,8 +82,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 var fixedSize = ((int)options.Size) << 6;
                 face.SetCharSize(0, fixedSize, dpi, dpi);
 
-                if (face.FamilyName == "Microsoft Sans Serif" && options.FontName != "Microsoft Sans Serif")
-                    throw new PipelineException(string.Format("Font {0} is not installed on this computer.", options.FontName));
+                if (face.FamilyName == "Microsoft Sans Serif" && region.FontName != "Microsoft Sans Serif")
+                    throw new PipelineException(string.Format("Font {0} is not installed on this computer.", region.FontName));
 
                 return face;
 

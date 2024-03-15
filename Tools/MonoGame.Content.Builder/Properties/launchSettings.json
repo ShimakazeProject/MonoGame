@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MonoGame.Content.Builder": {
+      "commandName": "Project",
+      "commandLineArgs": "/b \"E:\\Fonts\\Fonts.mgcb\""
+    }
+  }
+}

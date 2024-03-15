@@ -44,6 +44,10 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 				case 2:
 				// Range of characters (eg. "a-z").
 				return new CharacterRegion(split[0], split[1]);
+                    
+				case 3:
+				// Range of characters (eg. "a-z-Font").
+				return new CharacterRegion(split[0], split[1], splitStr[2]);
 
 				default:
 				throw new ArgumentException();

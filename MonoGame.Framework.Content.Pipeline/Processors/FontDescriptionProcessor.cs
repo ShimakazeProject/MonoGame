@@ -32,54 +32,67 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
         public override SpriteFontContent Process(FontDescription input, ContentProcessorContext context)
         {
             var output = new SpriteFontContent(input);
-            var fontFile = FindFont(input.FontName, input.Style.ToString());
 
-            if (string.IsNullOrWhiteSpace(fontFile))
+            var lineSpacing = 0f;
+            int yOffsetMin = 0;
+            List<Glyph> glyphs = [];
+
+            foreach (CharacterRegion item in input.CharacterRegions)
             {
-                var directories = new List<string> { Path.GetDirectoryName(input.Identity.SourceFilename) };
-                var extensions = new string[] { "", ".ttf", ".ttc", ".otf" };
+                var fontName = item.FontName;
+                var fontFile = FindFont(fontName, input.Style.ToString());
 
-                // Add special per platform directories
-                if (CurrentPlatform.OS == OS.Windows)
-                    directories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts"));
-                else if (CurrentPlatform.OS == OS.MacOSX)
+                if (string.IsNullOrWhiteSpace(fontFile))
                 {
-                    directories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Fonts"));
-                    directories.Add("/Library/Fonts");
-                    directories.Add("/System/Library/Fonts/Supplemental");
-                }
+                    var directories = new List<string> { Path.GetDirectoryName(input.Identity.SourceFilename) };
+                    var extensions = new string[] { "", ".ttf", ".ttc", ".otf" };
 
-                foreach (var dir in directories)
-                {
-                    foreach (var ext in extensions)
+                    // Add special per platform directories
+                    if (CurrentPlatform.OS == OS.Windows)
+                        directories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts"));
+                    else if (CurrentPlatform.OS == OS.MacOSX)
                     {
-                        fontFile = Path.Combine(dir, input.FontName + ext);
+                        directories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Fonts"));
+                        directories.Add("/Library/Fonts");
+                        directories.Add("/System/Library/Fonts/Supplemental");
+                    }
+
+                    foreach (var dir in directories)
+                    {
+                        foreach (var ext in extensions)
+                        {
+                            fontFile = Path.Combine(dir, fontName + ext);
+                            if (File.Exists(fontFile))
+                                break;
+                        }
                         if (File.Exists(fontFile))
                             break;
                     }
-                    if (File.Exists(fontFile))
-                        break;
+                }
+
+                if (!File.Exists(fontFile))
+                    throw new FileNotFoundException("Could not find \"" + fontName + "\" font file.");
+
+                context.Logger.LogMessage("Building Font {0}", fontFile);
+
+
+                {
+                    if (!File.Exists(fontFile))
+                    {
+                        throw new Exception(string.Format("Could not load {0}", fontFile));
+                    }
+                    var glyphs1 = ImportFont(input, item, out var lineSpacing1, out var yOffsetMin1, context, fontFile);
+                    glyphs.AddRange(glyphs1);
+                    lineSpacing = Math.Max(lineSpacing, lineSpacing1);
+                    yOffsetMin = Math.Min(yOffsetMin, yOffsetMin1);
                 }
             }
-
-            if (!File.Exists(fontFile))
-                throw new FileNotFoundException("Could not find \"" + input.FontName + "\" font file.");
-
-            context.Logger.LogMessage("Building Font {0}", fontFile);
 
             // Get the platform specific texture profile.
             var texProfile = TextureProfile.ForPlatform(context.TargetPlatform);
 
             {
-                if (!File.Exists(fontFile))
-                {
-                    throw new Exception(string.Format("Could not load {0}", fontFile));
-                }
-                var lineSpacing = 0f;
-                int yOffsetMin = 0;
-                var glyphs = ImportFont(input, out lineSpacing, out yOffsetMin, context, fontFile);
-
-                var glyphData = new HashSet<GlyphData>(glyphs.Select(x => x.Data));
+                HashSet<GlyphData> glyphData = new(glyphs.Select(x => x.Data));
 
                 // Optimize.
                 foreach (GlyphData glyph in glyphData)
@@ -169,7 +182,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             return output;
         }
 
-        private static Glyph[] ImportFont(FontDescription options, out float lineSpacing, out int yOffsetMin, ContentProcessorContext context, string fontName)
+        private static Glyph[] ImportFont(FontDescription options, in CharacterRegion region, out float lineSpacing, out int yOffsetMin, ContentProcessorContext context, string fontName)
         {
             // Which importer knows how to read this source font?
             IFontImporter importer;
@@ -191,7 +204,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             importer = new SharpFontImporter();
 
             // Import the source font data.
-            importer.Import(options, fontName);
+            importer.Import(options, region, fontName);
 
             lineSpacing = importer.LineSpacing;
             yOffsetMin = importer.YOffsetMin;

@@ -119,53 +119,57 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             }
         }
 
+        private List<CharacterRegion> _regions = [];
+
         [ContentSerializer(CollectionItemName = "CharacterRegion")]
         internal CharacterRegion[] CharacterRegions
         {
             get
             {
-                var regions = new List<CharacterRegion>();
-                var chars = Characters.ToList();
-                chars.Sort();
+                //var regions = new List<CharacterRegion>();
+                //var chars = Characters.ToList();
+                //chars.Sort();
 
-                var start = chars[0];
-                var end = chars[0];
+                //var start = chars[0];
+                //var end = chars[0];
 
-                for (var i=1; i < chars.Count; i++)
-                {
-                    if (chars[i] != (end+1))
-                    {
-                        regions.Add(new CharacterRegion(start, end));
-                        start = chars[i];
-                    }
-                    end = chars[i];
-                }
+                //for (var i=1; i < chars.Count; i++)
+                //{
+                //    if (chars[i] != (end+1))
+                //    {
+                //        regions.Add(new CharacterRegion(start, end));
+                //        start = chars[i];
+                //    }
+                //    end = chars[i];
+                //}
 
-                regions.Add(new CharacterRegion(start, end));
+                //regions.Add(new CharacterRegion(start, end));
 
-                return regions.ToArray();
+                return _regions.ToArray();
             }
 
             set
             {
+                _regions = new(value.Length);
                 for (int index = 0; index < value.Length; ++index)
                 {
                     CharacterRegion characterRegion = value[index];
                     if (characterRegion.End < characterRegion.Start)
                         throw new ArgumentException("CharacterRegion.End must be greater than CharacterRegion.Start");
 
-                    for (var start = characterRegion.Start; start <= characterRegion.End; start++)
-                        Characters.Add(start);
+                    _regions.Add(characterRegion);
+                    //for (var start = characterRegion.Start; start <= characterRegion.End; start++)
+                    //    Characters.Add(start);
                 }
             }
         }
 		
-	    [ContentSerializerIgnore]
-	    public ICollection<char> Characters
-	    {
-	        get { return characters; } 
-            internal set { characters = new HashSet<char>(value); }
-	    }
+	    //[ContentSerializerIgnore]
+	    //public ICollection<char> Characters
+	    //{
+	    //    get { return characters; } 
+     //       internal set { characters = new HashSet<char>(value); }
+	    //}
 
         internal FontDescription()
         {

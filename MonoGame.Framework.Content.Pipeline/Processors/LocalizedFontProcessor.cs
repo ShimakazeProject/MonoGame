@@ -54,6 +54,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             // Scan each .resx file in turn.
             foreach (string resourceFile in input.ResourceFiles)
             {
+                throw new System.NotImplementedException();
                 string absolutePath = Path.GetFullPath(resourceFile.Replace ('\\', Path.DirectorySeparatorChar).Replace ('/', Path.DirectorySeparatorChar));
 
                 // Make sure the .resx file really does exist.
@@ -75,8 +76,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                     // Scan each character of the string.
                     foreach (char usedCharacter in resourceString)
                     {
-                        if (!input.Characters.Contains (usedCharacter))
-                            input.Characters.Add(usedCharacter);
+                        //if (!input.Characters.Contains (usedCharacter))
+                        //    input.Characters.Add(usedCharacter);
                     }
                 }
 

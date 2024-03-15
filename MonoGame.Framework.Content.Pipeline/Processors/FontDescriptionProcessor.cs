@@ -88,6 +88,24 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                 }
             }
 
+            // Check that the default character is part of the glyphs
+            if (input.DefaultCharacter != null)
+            {
+                bool defaultCharacterFound = false;
+                foreach (var glyph in glyphs)
+                {
+                    if (glyph.Character == input.DefaultCharacter)
+                    {
+                        defaultCharacterFound = true;
+                        break;
+                    }
+                }
+                if (!defaultCharacterFound)
+                {
+                    throw new InvalidOperationException("The specified DefaultCharacter is not part of this font.");
+                }
+            }
+
             // Get the platform specific texture profile.
             var texProfile = TextureProfile.ForPlatform(context.TargetPlatform);
 
@@ -220,25 +238,6 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
 
             // Sort the glyphs
             glyphs.Sort((left, right) => left.Character.CompareTo(right.Character));
-
-
-            // Check that the default character is part of the glyphs
-            if (options.DefaultCharacter != null)
-            {
-                bool defaultCharacterFound = false;
-                foreach (var glyph in glyphs)
-                {
-                    if (glyph.Character == options.DefaultCharacter)
-                    {
-                        defaultCharacterFound = true;
-                        break;
-                    }
-                }
-                if (!defaultCharacterFound)
-                {
-                    throw new InvalidOperationException("The specified DefaultCharacter is not part of this font.");
-                }
-            }
 
             return glyphs.ToArray();
         }
